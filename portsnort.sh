@@ -7,7 +7,6 @@ target_ip=""     #applies to both nmap and masscan
 ports="0-65535"  #initial ports for masscan to scan
 port_state="--open-only"
 
-
 #nmap options, set defaults
 opt="-A -sV"
 
@@ -42,10 +41,17 @@ while getopts 'r:i:t:n:h' option; do
   esac
 done
 
+
 function scan {
 masscan --rate${rate} -p${ports} --adapter=${interface} ${target_ip} ${port_state} >| masscan.txt
-masscan_result=$(cat masscan.txt | grep -o '[0-9]\+')
-
+cat masscan.txt | grep -o '[0-9]\+' >| open_ports.txt
+nmap_scan_ports=$(cat open_ports.txt)
+if [ -s open_ports.txt ]; then
+echo "no open tcp ports, aborting scan"
+exit 1; else
+nmap -p ${nmap_scan_ports} ${opt} >| initial_scan
+cat initial_scan
+fi
 }
 
 
