@@ -47,15 +47,15 @@ if ! [ -z "$target_ip" ]; then
   cat masscan.txt | grep -o '[0-9]\+' >| open_ports.txt
   nmap_scan_ports=$(cat open_ports.txt)
     if ! [ -s open_ports.txt ]; then
-    nmap -p ${nmap_scan_ports} ${opt} >| initial_scan
-    cat initial_scan
+      nmap -p ${nmap_scan_ports} ${opt} >| initial_scan
+      cat initial_scan
     else
-    echo "no open tcp ports, aborting scan"
-    exit 1
+      echo "no open tcp ports, aborting scan"
+      exit 1
     fi
-  else
+else
   echo "no target specified"
-  fi
+fi
 }
 
 
