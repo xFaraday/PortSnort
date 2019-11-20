@@ -42,16 +42,20 @@ while getopts 'r:i:t:n:h' option; do
 done
 
 
-function scan {
-masscan --rate${rate} -p${ports} --adapter=${interface} ${target_ip} ${port_state} >| masscan.txt
-cat masscan.txt | grep -o '[0-9]\+' >| open_ports.txt
-nmap_scan_ports=$(cat open_ports.txt)
-if [ -s open_ports.txt ]; then
-echo "no open tcp ports, aborting scan"
-exit 1; else
-nmap -p ${nmap_scan_ports} ${opt} >| initial_scan
-cat initial_scan
-fi
+if ! [ -z "$target_ip" ]; then 
+  masscan --rate${rate} -p${ports} --adapter=${interface} ${target_ip} ${port_state} >| masscan.txt
+  cat masscan.txt | grep -o '[0-9]\+' >| open_ports.txt
+  nmap_scan_ports=$(cat open_ports.txt)
+    if ! [ -s open_ports.txt ]; then
+    nmap -p ${nmap_scan_ports} ${opt} >| initial_scan
+    cat initial_scan
+    else
+    echo "no open tcp ports, aborting scan"
+    exit 1
+    fi
+  else
+  echo "no target specified"
+  fi
 }
 
 
