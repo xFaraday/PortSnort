@@ -44,7 +44,7 @@ done
 
 function scan {
 masscan --rate${rate} -p${ports} --adapter=${interface} ${target_ip} ${port_state} >| masscan.txt
-masscan_result=$(cat masscan.txt | awk)
+masscan_result=$(cat masscan.txt | grep -o '[0-9]\+')
 
 }
 
