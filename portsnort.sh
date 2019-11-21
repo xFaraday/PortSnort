@@ -1,18 +1,16 @@
 #!/bin/bash
 
 #masscan options, set defaults
-rate="100000"    #packets/second
+rate="5000"    #packets/second
 interface="tun0" #applies to both nmap and masscan 
 target_ip=""     #applies to both nmap and masscan
-ports="0-65535"  #initial ports for masscan to scan
+ports="1-65535"  #initial ports for masscan to scan
 port_state="--open-only"
 
 #nmap options, set defaults
 opt="-A -sV"
 
-function usage {
 
-}
 
 #running checks
 if ! [ -x "$(command -v masscan)" ]; then
@@ -25,7 +23,7 @@ if ! [ -x "$(command -v nmap)" ]; then
   exit 1
 fi
 
-if [ "$EUID" -ne 0]; then
+if [ "$EUID" -ne 0 ]; then
   echo 'Error: Please run as root'
   exit 1
 fi
@@ -34,6 +32,7 @@ fi
 while getopts 'r:i:t:n:h' option; do
   case "$option" in
     r)rate=${OPTARG};;
+	p)ports=${OPTARG};;
     i)interface=${OPTARG};;
     t)target_ip=${OPTARG};;
     n)opt=${OPTARG};;
@@ -43,19 +42,16 @@ done
 
 
 if ! [ -z "$target_ip" ]; then 
-  masscan --rate${rate} -p${ports} --adapter=${interface} ${target_ip} ${port_state} >| masscan.txt
-  cat masscan.txt | grep -o '[0-9]\+' >| open_ports.txt
-  nmap_scan_ports=$(cat open_ports.txt)
-    if ! [ -s open_ports.txt ]; then
-      nmap -p ${nmap_scan_ports} ${opt} >| initial_scan
-      cat initial_scan
+  masscan --rate "$rate" -p "$ports" --adapter "$interface" "$target_ip" "$port_state" > masscan.txt
+  wait
+  nmap_scan_ports=$(awk '{print $4}' masscan.txt | grep -o '[0-9]\+' | awk '{print}' ORS=',')
+    if ! [ -z "$nmap_scan_ports" ]; then
+      nmap -A -sV -p "${nmap_scan_ports::-1}" "$target_ip" > initial_scan	
     else
       echo "no open tcp ports, aborting scan"
       exit 1
     fi
 else
   echo "no target specified"
+  exit 1
 fi
-}
-
-
