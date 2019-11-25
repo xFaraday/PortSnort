@@ -4,6 +4,8 @@
 
 ## Usage
 *Make sure to have masscan and nmap installed*
+## Warning
+There exists an error for masscan 1.0.3 on ubuntu
 
 Example:
 ```sh
