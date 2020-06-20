@@ -50,10 +50,6 @@ printf -- "-n = nmap options, Default is -A\n"
 printf -- "-h = help\n"
 }
 
-if [ -z "$target_ip" ]; then
-	usage
-fi
-
 if ! [ -z "$target_ip" ]; then 
   masscan --rate "$rate" -p "$ports" --adapter "$interface" "$target_ip" "$port_state" > masscan.txt
   wait
@@ -65,6 +61,7 @@ if ! [ -z "$target_ip" ]; then
       exit 1
     fi
 else
-  printf "\n No target IP specified.  Refer to usage.\n"
+  printf "\n No target IP specified.  Refer to usage.\n\n"
+  usage
   exit 1
 fi
