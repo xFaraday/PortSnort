@@ -8,7 +8,7 @@ ports="1-65535"  #initial ports for masscan to scan
 port_state="--open-only"
 
 #nmap options, set defaults
-opt="-A -sV"
+opt="-A"
 
 
 
@@ -28,6 +28,7 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
+
 #getting options, r=rate i=interface t=target_ip n=nmap arguments h=help
 while getopts 'r:i:t:n:h' option; do
   case "$option" in
@@ -40,18 +41,30 @@ while getopts 'r:i:t:n:h' option; do
   esac
 done
 
+usage() {
+printf -- "-r = masscan scan rate. \n"
+printf -- "-p = port range to scan.  Default is 1-65535\n"
+printf -- "-i = Network interface to scan from\n"
+printf -- "-t = target ip to scan.  Currently only supports 1 IP at a time\n"
+printf -- "-n = nmap options, Default is -A\n"
+printf -- "-h = help\n"
+}
+
+if [ -z "$target_ip" ]; then
+	usage
+fi
 
 if ! [ -z "$target_ip" ]; then 
   masscan --rate "$rate" -p "$ports" --adapter "$interface" "$target_ip" "$port_state" > masscan.txt
   wait
-  nmap_scan_ports=$(awk '{print $4}' masscan.txt | grep -o '[0-9]\+' | awk '{print}' ORS=',')
+  nmap_scan_ports=$(sed 's/[ \t]*\([0-9]\{1,\}\).*/\1/' masscan.txt | cut -c 21-)
     if ! [ -z "$nmap_scan_ports" ]; then
-      nmap -A -sV -p "${nmap_scan_ports::-1}" "$target_ip" > initial_scan	
+      nmap -A -p "${nmap_scan_ports::-1}" "$target_ip" > initial_scan	
     else
       echo "no open tcp ports, aborting scan"
       exit 1
     fi
 else
-  echo "no target specified"
+  printf "\n No target IP specified.  Refer to usage.\n"
   exit 1
 fi
