@@ -53,7 +53,7 @@ printf -- "-h = help\n"
 if ! [ -z "$target_ip" ]; then 
   masscan --rate "$rate" -p "$ports" --adapter "$interface" "$target_ip" "$port_state" > masscan.txt
   wait
-  nmap_scan_ports=$(sed 's/[ \t]*\([0-9]\{1,\}\).*/\1/' masscan.txt | cut -c 21-)
+  nmap_scan_ports=$(sed 's/[ \t]*\([0-9]\{1,\}\).*/\1/' masscan.txt | cut -c 21- | awk '{print}' ORS=',')
     if ! [ -z "$nmap_scan_ports" ]; then
       nmap -A -p "${nmap_scan_ports::-1}" "$target_ip" > initial_scan	
     else
