@@ -41,7 +41,7 @@ done
 usage() {
 printf -- "\n\n<Questions to the dev>\n\n"
 printf -- "User: Whats loud network traffic?\n\n"
-printf -- "Dev: No idea\n\n"
+printf -- "Port Snort Dev: No idea\n\n"
 			
 printf -- "-r = masscan scan rate. \n"
 printf -- "-p = port range to scan.  Default is 1-65535\n"
