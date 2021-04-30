@@ -57,12 +57,15 @@ if ! [ -z "$target_ip" ]; then
 	if ! [ -z "$rangecheck" ]; then
 		masscan --rate "$rate" -p "$ports" --adapter "$interface" "$target_ip" "$port_state" > masscan.txt
 		wait
-		ipalive=$(awk '{ print $6 }' masscan.txt | uniq) 
-		numuniq=$(awk '{ print $6 }' masscan.txt | uniq | wc -l)
+		ipalive=$(awk '{ print $6 }' masscan.txt | sort -u) 
+		numuniq=$(awk '{ print $6 }' masscan.txt | sort -u | wc -l)
+		printf "$numuniq Hosts found with ports: $ports\n"
+		printf "$ipalive \n"
 		for ip in $ipalive; do
-			nmap_scan_ports=$(grep $ip masscan.txt | sed 's/[ \t]*\([0-9]\{1,\}\).*/\1/' masscan.txt | cut -c 21- | awk '{print}' ORS=',')
+			mkdir $ip
+			nmap_scan_ports=$(grep $ip masscan.txt | sed 's/[ \t]*\([0-9]\{1,\}\).*/\1/' | cut -c 21- | awk '{print}' ORS=',')
 			if ! [ -z "$nmap_scan_ports" ]; then
-      			nmap -A -p "${nmap_scan_ports::-1}" "$target_ip" > "$ip"	
+      			nmap -A -p "${nmap_scan_ports::-1}" "$ip" -oA "$ip/$ip"
     		else
       			echo "no open tcp ports, aborting scan"
       			exit 1
@@ -73,7 +76,8 @@ if ! [ -z "$target_ip" ]; then
 		wait
 		nmap_scan_ports=$(sed 's/[ \t]*\([0-9]\{1,\}\).*/\1/' masscan.txt | cut -c 21- | awk '{print}' ORS=',')
 		if ! [ -z "$nmap_scan_ports" ]; then
-      		nmap -p "${nmap_scan_ports::-1}" "$target_ip" > "$target_ip"	
+      		mkdir "$target_ip"
+      		nmap -p "${nmap_scan_ports::-1}" -A "$target_ip" -oA "$target_ip/$target_ip"
     	else
       		echo "no open tcp ports, aborting scan"
       		exit 1
